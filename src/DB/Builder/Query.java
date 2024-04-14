@@ -1,11 +1,10 @@
 package DB.Builder;
 
-import org.example.socialmedia_proxy.DB.QueryType;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import DB.QueryType;
 
 public class Query {
     public static String query;

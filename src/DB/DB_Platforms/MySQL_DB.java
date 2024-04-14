@@ -1,6 +1,5 @@
 package DB.DB_Platforms;
-
-import org.example.socialmedia_proxy.DB.DB;
+import DB.DB;
 
 public class MySQL_DB extends DB {
     @Override
