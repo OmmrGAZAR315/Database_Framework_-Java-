@@ -1,5 +1,9 @@
 package DB;
 
+
+import DB.Helpers.AbsolutePath;
+import DB.Helpers.EnvLoader;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.sql.Connection;
@@ -12,22 +16,43 @@ public abstract class DB {
     private static Connection connection;
 
 
-    protected static void getDriverManager(String className, String url, String username, String password) throws Exception {
-        Class.forName(className);
-        connection = DriverManager.getConnection("jdbc:" + url, username, password);
+    protected static void getDriverManager(String className, String url, String username, String password) {
+        int retryAttempts = 3;
+        int currentAttempt = 0;
+        while (currentAttempt < retryAttempts) {
+            try {
+                Class.forName(className);
+                connection = DriverManager.getConnection("jdbc:" + url, username, password);
+                System.out.println("connected");
+                break;
+            } catch (Exception e) {
+                System.err.println("Failed to connect to the database (attempt " + (currentAttempt + 1) + ")");
+                currentAttempt++;
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
     }
 
     public static Connection getConnection() {
         return connection;
     }
 
-    public abstract void setConnection(String className, String db_connection, String host, String port, String database, String username, String password) throws Exception;
+    public abstract void setConnection(String className, String db_connection, String host, String port, String
+            database, String username, String password) throws Exception;
 
-    static {
+    public static void loadDB() {
         try {
             EnvLoader.loadEnv();
 
-            Class<?> clazz = Class.forName(DB_PLATFORM_CLASS.getValue());
+            Class<?> clazz = Class.forName(
+                    DB_PACKAGE_PATH.getValue() +
+                            DB_PLATFORM_CLASS.getValue()
+            );
+
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             Object instance = constructor.newInstance();
             Method method = clazz.getMethod(
@@ -52,8 +77,13 @@ public abstract class DB {
             );
 
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            System.out.println(e.getMessage());
+            System.out.println("Error loading DB");
         }
+    }
+
+    static {
+        loadDB();
     }
 
 
